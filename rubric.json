@@ -1,0 +1,95 @@
+{
+  "version": "1.0",
+  "domain": "customer_support",
+  "scale": {
+    "min": 1,
+    "max": 5
+  },
+  "dimensions": [
+    {
+      "key": "resolution",
+      "name": "Issue Resolution",
+      "anchors": {
+        "5": "Core issue fully resolved; customer confirms or the resolution is unambiguous.",
+        "4": "Resolved but customer needed a follow-up to confirm, or a minor sub-issue was left open.",
+        "3": "Partially resolved; a workaround was given but the root problem persists.",
+        "2": "Agent attempted resolution but it was incorrect, incomplete, or not actionable.",
+        "1": "Issue not addressed, or agent gave up / deflected without resolution."
+      }
+    },
+    {
+      "key": "accuracy",
+      "name": "Accuracy",
+      "anchors": {
+        "5": "All factual/policy claims are correct and verifiable.",
+        "4": "Correct in substance; one minor imprecision that doesn't affect outcome.",
+        "3": "At least one meaningful factual error, but overall guidance still usable.",
+        "2": "A factual error that could lead the customer to a wrong action or expectation.",
+        "1": "Multiple errors or a fabricated policy/fact presented confidently."
+      }
+    },
+    {
+      "key": "empathy_tone",
+      "name": "Empathy & Tone",
+      "anchors": {
+        "5": "Acknowledges customer's situation/frustration appropriately; tone matches context throughout.",
+        "4": "Generally warm and professional; one flat or slightly robotic moment.",
+        "3": "Neutral/transactional throughout — not rude, but no real acknowledgment of customer state.",
+        "2": "Noticeably curt, dismissive, or tone-deaf at least once.",
+        "1": "Rude, condescending, or actively escalates customer emotion."
+      }
+    },
+    {
+      "key": "policy_adherence",
+      "name": "Policy / Process Adherence",
+      "anchors": {
+        "5": "Followed required process steps (verification, disclosures, escalation paths) correctly and in order.",
+        "4": "Followed process with a minor procedural slip that didn't affect the outcome.",
+        "3": "Skipped or reordered a step, but no compliance/security risk resulted.",
+        "2": "Skipped a step that creates a real risk (e.g., insufficient identity verification).",
+        "1": "Clear policy violation."
+      }
+    },
+    {
+      "key": "clarity",
+      "name": "Clarity & Communication",
+      "anchors": {
+        "5": "Explanations are easy to follow; no unexplained jargon; next steps are explicit.",
+        "4": "Clear overall; one point could have been explained better.",
+        "3": "Understandable but requires effort; some ambiguity about next steps.",
+        "2": "Confusing structure or unexplained jargon that likely required a re-read.",
+        "1": "Customer would reasonably be left unsure what happened or what to do next."
+      }
+    },
+    {
+      "key": "efficiency",
+      "name": "Efficiency",
+      "anchors": {
+        "5": "No wasted turns; information gathered once; resolution reached efficiently.",
+        "4": "One redundant question or avoidable back-and-forth.",
+        "3": "Noticeable repetition but conversation still converges.",
+        "2": "Significant looping or excessive turns for a simple issue.",
+        "1": "Conversation stalls, loops, or customer repeats themselves multiple times."
+      }
+    }
+  ],
+  "verdict_thresholds": {
+    "pass": {"min_overall": 4.0, "no_dimension_below": 3},
+    "needs_review": {"min_overall": 3.0, "max_overall": 3.9},
+    "fail": {"max_overall": 2.9}
+  },
+  "system_context_rules": {
+    "description": "When a transcript includes [SYS] backend action calls/results, timestamps, or internal-only fields alongside the dialogue, that context is ground truth and takes precedence over the agent's spoken claims.",
+    "rules": [
+      "Cross-check every agent claim of a completed action (cancellation, refund, email update, escalation, etc.) against its matching [SYS] action result. A claimed success with no matching action, or a matching action that errored, is a fabricated resolution.",
+      "Backend record values (price, date, status) are correct; an agent statement that conflicts with them is an accuracy error.",
+      "Known backend state (e.g. escalation_availability_status, identity_verification, has_return_consent) that the agent contradicts or ignores is a policy/process failure.",
+      "Fields marked internal/confidential/do-not-disclose that the agent shares with the customer are a critical policy violation regardless of factual accuracy.",
+      "Timestamps are evidence for efficiency scoring (dead air, repeated hold, redundant re-confirmation loops)."
+    ],
+    "automatic_fail_conditions": [
+      "Agent told the customer a backend action succeeded when the matching [SYS] action shows ERROR or no matching action was called (fabricated resolution) — score resolution=1 and policy_adherence=1.",
+      "Agent disclosed a field explicitly marked internal/confidential to the customer — score policy_adherence=1."
+    ]
+  }
+}

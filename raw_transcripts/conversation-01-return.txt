@@ -1,0 +1,164 @@
+================================================================================
+                     CALLBUDDY  —  AI VOICE AGENT TRANSCRIPT
+                              QA REVIEW COPY
+================================================================================
+!! ALL DATA BELOW IS SYNTHETIC / FICTIONAL — generated for QA testing only.  !!
+!! No real customer, order, or payment data is used. All names, numbers, and !!
+!! IDs below are fabricated for this exercise.                          !!
+================================================================================
+
+TRANSCRIPT ID   : QA-001
+SCENARIO        : Order Return  (jersey too big)
+CALL DATE       : 2025-09-27
+DURATION        : ~1m 55s  (11:04:25 PM – 11:06:20 PM)
+CALL OUTCOME    : User Hung Up
+CALL REASON     : Order Return
+
+--------------------------------------------------------------------------------
+ CALL METADATA
+--------------------------------------------------------------------------------
+Caller Phone Number        : +14156620198
+Dialed Phone               : +18774382200
+External Id                : a1f4c2e0-7b93-4d81-9a6c-2e5f80c14d77
+Escalation Availability     : available
+Company Brand              : CallBuddy
+Caller On File             : Jordan Avery
+Phone Number On File       : 14156620198
+Email On File              : jordan.avery91@gmail.com
+Search Order Method        : by_ani  (key: +14156620198 -> 14156620198)
+
+--------------------------------------------------------------------------------
+ SYSTEM INITIALIZATION  (Actions & Variables)
+--------------------------------------------------------------------------------
+[SYS] Set Agent Greeting        = "Thanks for calling CallBuddy. You're on a recorded line. Hey, how can I help you today?"
+[SYS] Set Shipping Cost         = 9.99
+[SYS] Set Return Policy Max Days = 365
+[SYS] Set User Still Needs Help = true
+[SYS] Set Place New Order       = false
+
+[SYS] Action initialize_conversation -> success
+        Orders = [
+          {
+            order_id       : "114-2938-5571",
+            order_date     : "2025-09-27",
+            order_status   : "Shipped",
+            total_quantity : 1,
+            items          : [ "Men's Home Replica Baseball Jersey - White" (medium, x1) ]
+          }
+        ]
+        Agent Language   = "English"
+        Agent Country    = "US"
+        Agent Greeting   = "Thank you for calling CallBuddy. You're on a recorded
+                            line. Hey Jordan, how can I help you?"
+        Help Desk Link   = "https://www.callbuddy.com/help"
+        Returns Link     = "https://www.callbuddy.com/track-order"
+        Internal Config  = {"queue":"CallBuddy","site_id":"847213",
+                            "country_code":"US","currency":"USD",
+                            "timezone":"America/New_York"}
+
+--------------------------------------------------------------------------------
+ CONVERSATION TIMELINE
+--------------------------------------------------------------------------------
+
+[11:04:25 PM]
+  AI AGENT > Thank you for calling CallBuddy. You're on a recorded line.
+             Hey Jordan, how can I help you?
+
+[11:04:35 PM]
+  CALLER   > I need to make a return because my jersey too big that I bought.
+
+  [SYS] Updated Search Order Used Key = "14156620198"
+
+[11:04:37 PM]
+  AI AGENT > I see you recently ordered a Men's Home Replica Baseball Jersey in medium
+             size on September 27th. Is this the order you want to return
+             because the jersey is too big?
+
+[11:04:48 PM]
+  CALLER   > Yes, please.
+
+[11:04:49 PM]
+  AI AGENT > One second while I look up some details about that order.
+
+  [SYS] Action select_order -> success
+          Selected Order = {
+            order_id     : "114-2938-5571",
+            order_date   : "2025-09-28",
+            total_price  : "134.99",
+            package_id   : "40100-DS-FCW-774920155083-00000188245530011",
+            carrier      : "OnTrac",
+            tracking_key : "1LSCXA0093471120",
+            tracking_url : "https://www.ontrac.com/trackingres.asp?tracking=1LSCXA0093471120",
+            shipment_status     : "Delivered" (actual_delivery_date 2025-09-30),
+            product_id   : 2841577,
+            item         : "Men's Home Replica Baseball Jersey - White" (medium, x1),
+            unit_price   : 134.99,
+            returnable_quantity : 1,
+            is_returnable       : true,
+            return_item_id      : 10488213
+          }
+          Caller First Name On File = "Jordan"
+          Caller Last Name On File  = "Avery"
+
+[11:04:51 PM]
+  AI AGENT > Your medium Men's Home Replica Baseball Jersey is eligible for return.
+             I can send you a text message with a link to start your return
+             process. Would you like me to send that to your phone?
+
+[11:05:07 PM]
+  CALLER   > Can I exchange my jersey for a smaller size?
+
+[11:05:07 PM]
+  AI AGENT > We don't offer exchanges, but you can return the jersey and place
+             a new order for the smaller size. Would you like me to send the
+             return link to your phone now?
+
+[11:05:19 PM]
+  CALLER   > Yes.
+
+[11:05:19 PM]
+  AI AGENT > To initiate a return, you need to send back the item to us using
+             our online return process. The item needs to arrive by 365 days
+             after the original order ship date. If you use our return carrier,
+             the total minus $9.99 will be refunded to you within 2 to 7
+             business days, excluding original shipping fees. I can send you a
+             one-time link to the form, including your order number, to easily
+             initiate the return. Once initiated, you will also receive a return
+             label to the email on file. Message and data rates may apply.
+             Can I send over the text?
+
+  [SYS] Action send_sms_returns_link -> ERROR
+          Requirement not met: has_return_consent must be true, but is null.
+
+[11:05:53 PM]
+  CALLER   > Yes.
+
+  [SYS] Set Has Return Consent = true
+
+[11:05:53 PM]
+  AI AGENT > I'm sending that text now, please hold.
+
+  [SYS] Action send_sms_returns_link -> success
+
+[11:05:54 PM]
+  AI AGENT > Okay, the text has been sent. Please let me know when you've
+             received it.
+
+[11:06:08 PM]
+  CALLER   > I'm not receiving the text.
+
+[11:06:09 PM]
+  AI AGENT > Sorry to hear that. Can I confirm the phone number I have on file
+             ends with 0198 for sending the text?
+
+[11:06:19 PM]
+  CALLER   > Yes. I just got the text now. Thanks.
+
+[11:06:20 PM]
+  AI AGENT > Great! Is there anything else I can help you with today?
+
+  [SYS] User Hung Up
+  [SYS] Action conversation_data_upload -> success
+          Call reason = "Order Return"
+
+================================================================================

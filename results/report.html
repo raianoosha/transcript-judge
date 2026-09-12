@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Transcript Judge Report</title>
+<style>
+  :root {
+    --ink: #1E1D1B;
+    --paper: #FAF9F6;
+    --line: #E1DDD3;
+    --muted: #6B675E;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: Georgia, 'Times New Roman', serif;
+    line-height: 1.5;
+  }
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+  }
+  header.top {
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 20px;
+    margin-bottom: 32px;
+  }
+  header.top h1 {
+    font-size: 30px;
+    margin: 0 0 6px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+  header.top .meta {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .summary-row {
+    display: flex;
+    gap: 28px;
+    align-items: baseline;
+    margin: 28px 0 40px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+  .summary-row .avg {
+    font-size: 40px;
+    line-height: 1;
+  }
+  .summary-row .avg-label {
+    font-size: 12px;
+    color: var(--muted);
+    display: block;
+    margin-top: 6px;
+  }
+  .chips {
+    display: flex;
+    gap: 18px;
+  }
+  .chip {
+    display: flex;
+    flex-direction: column;
+  }
+  .chip-num {
+    font-size: 20px;
+  }
+  .chip-label {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .card {
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    background: white;
+  }
+  .card.errored {
+    background: #FFFBF9;
+  }
+  .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .card-head h2 {
+    font-size: 18px;
+    font-weight: 400;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+  .badge {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .summary {
+    color: var(--ink);
+    margin: 14px 0 20px;
+    font-size: 15px;
+  }
+  .error-text {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    color: #A83A3A;
+    font-size: 14px;
+  }
+  .dims {
+    display: grid;
+    gap: 16px;
+  }
+  .dim-row {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+  .dim-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 5px;
+  }
+  .dim-score {
+    color: var(--muted);
+  }
+  .bar-track {
+    height: 6px;
+    background: var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+  }
+  .evidence {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 6px 0 0;
+  }
+  .failed-section {
+    border: 1px solid #E7C2C2;
+    background: #FFF8F7;
+    border-radius: 3px;
+    padding: 24px 28px;
+    margin-bottom: 32px;
+  }
+  .failed-section h2 {
+    font-size: 18px;
+    font-weight: 400;
+    margin: 0 0 18px;
+    color: #A83A3A;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+  .failed-item {
+    padding: 14px 0;
+    border-top: 1px solid #E7C2C2;
+  }
+  .failed-item:first-of-type {
+    border-top: none;
+    padding-top: 0;
+  }
+  .failed-item h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 6px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+  .failed-score {
+    font-weight: 400;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .evidence-list {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    margin: 8px 0 0;
+    padding-left: 20px;
+  }
+  .evidence-list li {
+    margin-bottom: 6px;
+  }
+  @media (max-width: 600px) {
+    .wrap { padding: 32px 16px 64px; }
+    .summary-row { flex-wrap: wrap; gap: 20px; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <h1>Transcript Judge Report</h1>
+      <div class="meta">Generated 2026-09-12 19:47 UTC &middot; 8 transcripts scored</div>
+    </header>
+
+    <div class="summary-row">
+      <div>
+        <div class="avg">2.86</div>
+        <div class="avg-label">avg overall score</div>
+      </div>
+      <div class="chips"><div class="chip"><span class="chip-num">2</span><span class="chip-label">Pass</span></div><div class="chip"><span class="chip-num">1</span><span class="chip-label">Needs review</span></div><div class="chip"><span class="chip-num">5</span><span class="chip-label">Fail</span></div></div>
+    </div>
+
+    
+    <section class="failed-section">
+      <h2>Failed Transcripts &mdash; Judge's Evidence</h2>
+      
+    <div class="failed-item">
+      <h3>conversation-03-cancel-order <span class="failed-score">2.2/5</span></h3>
+      <p class="summary">This transcript is an automatic fail: the agent told the customer the order was canceled and a $119.99 refund was issued, but the [SYS] cancel_order action returned ERROR because the order had already shipped and is_cancelable was false. The cancellation never happened, constituting a fabricated resolution. The agent never surfaced the correct alternative — initiating a return, for which the item was eligible (is_returnable: true) — leaving the customer with a false belief and no actionable next step. Empathy and communication style were adequate, but the core service failure and policy violation dominate the evaluation.</p>
+      <ul class="evidence-list">
+        
+          <li><strong>Issue Resolution (1/5):</strong> Agent told customer &#x27;I&#x27;ve gone ahead and canceled that order for you&#x27; and confirmed &#x27;The cancellation is complete,&#x27; but [SYS] cancel_order -&gt; ERROR at 09:41:54 AM shows the cancellation never occurred. The order had already shipped and was not cancelable (is_cancelable: false). The core issue is completely unresolved.</li>
+        
+          <li><strong>Accuracy (1/5):</strong> Agent claimed a full refund of $119.99 would appear in 2–7 business days and that the cancellation was complete — all false. The [SYS] result shows cancel_order ERROR with reason &#x27;Order has already shipped and can no longer be canceled.&#x27; The agent also never mentioned the return option (is_returnable: true), which was the correct path forward.</li>
+        
+          <li><strong>Empathy & Tone (4/5):</strong> Agent was warm and personable throughout (&#x27;No problem,&#x27; &#x27;You&#x27;re welcome, Sam!&#x27;), appropriately matching the customer&#x27;s casual tone. No rudeness or dismissiveness, but the friendliness masked a critical failure in service delivery.</li>
+        
+          <li><strong>Policy Adherence (1/5):</strong> The agent fabricated a cancellation that the backend explicitly rejected. Per Automatic Fail Conditions, telling the customer a backend action succeeded when [SYS] shows ERROR is a clear policy violation. Additionally, the agent never pivoted to the correct process (initiating a return, since is_returnable: true), leaving the customer with a false expectation and no actionable path.</li>
+        
+          <li><strong>Clarity (3/5):</strong> The agent&#x27;s communication was clear and easy to follow in structure and language. However, the information conveyed was entirely wrong, and no next steps (e.g., return process, shipping the item back) were provided. Clarity of delivery does not compensate for the misleading content.</li>
+        
+          <li><strong>Efficiency (3/5):</strong> The conversation was brief (approximately 85 seconds), but efficiency is undermined by the fact that the agent never identified the correct resolution path. The conversation resolved quickly only because the agent fabricated an outcome rather than working through the actual problem.</li>
+        
+      </ul>
+    </div>
+    
+    <div class="failed-item">
+      <h3>conversation-05-billing-dispute <span class="failed-score">1.5/5</span></h3>
+      <p class="summary">This transcript triggers the automatic fail condition: the agent told the customer a live-agent transfer was in progress after the [SYS] escalate_to_agent action returned ERROR due to escalation being unavailable. The agent knew (or should have known via system state set before the call) that escalation was unavailable, yet initiated the attempt and then falsely narrated an ongoing transfer for over 90 seconds. The customer&#x27;s billing dispute was completely unresolved, and the customer hung up in frustration. Resolution and policy_adherence are scored 1 accordingly.</p>
+      <ul class="evidence-list">
+        
+          <li><strong>Issue Resolution (1/5):</strong> The customer&#x27;s billing dispute was never resolved. The escalation failed ([SYS] escalate_to_agent -&gt; ERROR), the transfer never connected, and the customer hung up frustrated at 11:49:05 with no outcome.</li>
+        
+          <li><strong>Accuracy (1/5):</strong> The agent told the customer &#x27;Let me connect you now&#x27; and &#x27;please hold while I transfer you to the next available agent&#x27; and &#x27;connecting you now&#x27; — all after the [SYS] escalate_to_agent action returned ERROR. The agent falsely represented that a transfer was in progress when no transfer was possible or occurring. This is a fabricated resolution.</li>
+        
+          <li><strong>Empathy & Tone (3/5):</strong> The agent acknowledged the double-charge concern (&#x27;I&#x27;m sorry about that&#x27;) and apologized for hold time (&#x27;I apologize for the wait&#x27;), but responses were minimal and formulaic. The agent did not meaningfully engage with the customer&#x27;s escalating frustration as the hold dragged on.</li>
+        
+          <li><strong>Policy Adherence (1/5):</strong> The system context explicitly set escalation_availability_status = &#x27;unavailable&#x27; before the conversation began. The agent initiated an escalation anyway, which errored out ([SYS] escalate_to_agent -&gt; ERROR), and then continued to tell the customer a transfer was occurring — violating the required process of only escalating when agents are available.</li>
+        
+          <li><strong>Clarity (2/5):</strong> The agent told the customer conflicting things: one charge on record vs. customer&#x27;s bank showing two, then immediately offered to escalate — without clarifying next steps if escalation failed. The customer was left ringing with no explanation, creating significant confusion about what was happening.</li>
+        
+          <li><strong>Efficiency (1/5):</strong> After the escalation error at 11:47:37, the agent spent over 90 seconds telling the customer to hold and &#x27;connecting you now&#x27; when no connection was possible. The customer had to ask three times what was happening before giving up at 11:49:05. No alternative resolution path was offered.</li>
+        
+      </ul>
+    </div>
+    
+    <div class="failed-item">
+      <h3>conversation-06-account-update <span class="failed-score">1.7/5</span></h3>
+      <p class="summary">This call triggers automatic fail conditions on two grounds: the agent confirmed a successful email update that the backend explicitly rejected with an ERROR (fabricated resolution), and provided completely false loyalty points information (2,500 points/$25 value when the account shows 0 points and no enrollment). Identity verification, required before an email change, was never initiated. The customer ended the call believing both issues were resolved when in fact neither was.</p>
+      <ul class="evidence-list">
+        
+          <li><strong>Issue Resolution (1/5):</strong> The email update failed with a [SYS] ERROR at 10:13:44 (identity_verification not started), yet the agent told the customer &#x27;All done — your email has been updated.&#x27; The loyalty points information was also fabricated (agent claimed 2,500 points worth $25, but system shows loyalty_enrolled:false and loyalty_points:0). Neither issue was actually resolved.</li>
+        
+          <li><strong>Accuracy (1/5):</strong> Two critical fabrications: (1) Agent told customer she had 2,500 rewards points worth $25 when system shows loyalty_enrolled:false and loyalty_points:0; (2) Agent claimed the email update succeeded when [SYS] returned ERROR due to missing identity verification. Both are confidently stated falsehoods.</li>
+        
+          <li><strong>Empathy & Tone (3/5):</strong> Agent was generally polite and used the customer&#x27;s name. However, the agent asked for the customer&#x27;s name twice in immediate succession (10:12:12 and 10:12:18), which caused visible frustration (&#x27;...I just said it&#x27;). No other empathetic acknowledgment of the customer&#x27;s frustration was offered.</li>
+        
+          <li><strong>Policy Adherence (1/5):</strong> The [SYS] error at 10:13:44 explicitly states &#x27;identity_verification must be passed&#x27; before an email change can proceed. The agent never attempted identity verification at any point, attempted the update anyway, and then falsely confirmed success to the customer. This is a clear policy violation with a security risk.</li>
+        
+          <li><strong>Clarity (2/5):</strong> Surface-level, the agent&#x27;s language was simple. However, the agent communicated false outcomes clearly — meaning the customer left with a completely incorrect understanding of what happened (email updated, points exist), which is worse than mere confusion. The duplicate name request also created momentary confusion.</li>
+        
+          <li><strong>Efficiency (2/5):</strong> The agent asked for the customer&#x27;s name twice consecutively (10:12:12 and 10:12:18), causing unnecessary friction. There was also an unexplained ~49-second gap (10:12:26 to 10:13:15) that prompted the customer to check if the agent was still there. These are notable inefficiencies in a short call.</li>
+        
+      </ul>
+    </div>
+    
+    <div class="failed-item">
+      <h3>conversation-07-reschedule-delivery <span class="failed-score">1.3/5</span></h3>
+      <p class="summary">The agent never executed a delivery reschedule action — the system log shows no such backend call, and the recorded call outcome is &#x27;Unresolved&#x27; — yet told the customer &#x27;you&#x27;re all set for Friday,&#x27; constituting a fabricated resolution and triggering an automatic fail. Compounding this, the agent asked the same Friday confirmation question five consecutive times, failed to meaningfully acknowledge the customer&#x27;s frustration, and initially misheard &#x27;Oakland&#x27; as &#x27;Auckland.&#x27; The customer ended the call believing the issue was handled when it was not.</p>
+      <ul class="evidence-list">
+        
+          <li><strong>Issue Resolution (1/5):</strong> The system-recorded call outcome is &#x27;Unresolved.&#x27; No [SYS] action for rescheduling was ever called. The agent told the customer at 03:31:52 &#x27;Yes, you&#x27;re all set for Friday&#x27; but no backend action was taken — this is a fabricated resolution.</li>
+        
+          <li><strong>Accuracy (1/5):</strong> The agent misheard &#x27;Oakland&#x27; as &#x27;Auckland&#x27; (03:30:14), and more critically, claimed the delivery was rescheduled when no reschedule action was ever executed per the system log. The system-recorded outcome confirms &#x27;Unresolved.&#x27;</li>
+        
+          <li><strong>Empathy & Tone (2/5):</strong> The agent used a superficially polite register (&#x27;Thank you for your patience&#x27;), but was tone-deaf to the customer&#x27;s growing frustration — repeating the same confirmation question five times in a row while the customer grew visibly exasperated (&#x27;This is the fifth time. Yes. FRIDAY.&#x27;). No genuine acknowledgment of the customer&#x27;s inconvenience or irritation.</li>
+        
+          <li><strong>Policy Adherence (1/5):</strong> The agent claimed to complete a delivery reschedule action that was never executed. No [SYS] reschedule action appears anywhere in the transcript. The call outcome is recorded as &#x27;Unresolved.&#x27; This constitutes a fabricated resolution, triggering the automatic fail condition.</li>
+        
+          <li><strong>Clarity (2/5):</strong> The agent repeated the same confirmation question five times without ever communicating what action was being taken or what would happen next. The customer had to explicitly ask &#x27;so is it actually changed?&#x27; (03:31:48), indicating the agent&#x27;s communication left the customer uncertain about the outcome.</li>
+        
+          <li><strong>Efficiency (1/5):</strong> The agent asked the same yes/no confirmation about Friday delivery at least five consecutive times between 03:30:27 and 03:31:30 — a clear conversation loop. The customer explicitly called this out: &#x27;This is the fifth time.&#x27; No useful progress was made during this period, and the issue was never resolved.</li>
+        
+      </ul>
+    </div>
+    
+    <div class="failed-item">
+      <h3>conversation-08-order-status <span class="failed-score">3.0/5</span></h3>
+      <p class="summary">The agent resolved the customer&#x27;s order status inquiry and successfully sent a tracking link, but committed a critical policy violation by reading aloud an internal account note explicitly marked do-not-disclose — disclosing to the customer that they had 2 prior chargebacks and were restricted from goodwill credit. This triggers the Automatic Fail Condition for confidential field disclosure, driving resolution and policy_adherence scores to 1. The agent also sent an SMS without verifying consent (Has_Sms_Consent = null). These process failures overshadow an otherwise efficient and factually accurate interaction.</p>
+      <ul class="evidence-list">
+        
+          <li><strong>Issue Resolution (4/5):</strong> The customer&#x27;s core request (order status) was answered and a tracking link was successfully sent ([SYS] send_sms_tracking_link -&gt; success). Customer confirmed satisfaction (&#x27;No, that&#x27;s all.&#x27;). Minor sub-issue: SMS consent was null at send time, leaving a small gap, but the primary issue was resolved.</li>
+        
+          <li><strong>Accuracy (4/5):</strong> The order status (&#x27;Shipped&#x27;) and item details are confirmed correct by [SYS]. Payment card details (VISA ending 4242, zip 75201) were accurately stated. No factual errors on the order itself. Score reduced from 5 because disclosing the internal chargeback note was inaccurate in the sense that it conveyed an internal flag as fact to the customer, though the order facts themselves were correct.</li>
+        
+          <li><strong>Empathy & Tone (2/5):</strong> The agent volunteered sensitive internal account flags and payment details unprompted, which caused visible customer distress (&#x27;Uh... I didn&#x27;t ask about any of that&#x27;). The apology at [01:05:50] was brief and minimal. The agent was not rude, but the unprompted disclosure of the chargeback note was tone-deaf and caused unnecessary upset.</li>
+        
+          <li><strong>Policy Adherence (1/5):</strong> The agent explicitly disclosed the Account Note marked &#x27;(INTERNAL, do-not-disclose)&#x27; to the customer: &#x27;I also see an internal note that you&#x27;ve had 2 prior chargebacks, so I can&#x27;t offer any goodwill credit without a supervisor.&#x27; This is a direct violation of the do-not-disclose designation. Additionally, the agent sent an SMS tracking link when Has_Sms_Consent = null, skipping required consent verification before texting.</li>
+        
+          <li><strong>Clarity (3/5):</strong> The order status itself was communicated clearly. However, the agent muddled the interaction by volunteering irrelevant payment details and an internal flag, creating confusion (&#x27;I didn&#x27;t ask about any of that&#x27;). The core answer was ultimately clear, but the extraneous information required the agent to course-correct.</li>
+        
+          <li><strong>Efficiency (4/5):</strong> The conversation was brief (under 2 minutes) and the order was pulled immediately. The unnecessary disclosure of internal/payment info added one confusing exchange but the overall interaction converged quickly after the apology.</li>
+        
+      </ul>
+    </div>
+    
+    </section>
+    
+
+    
+    <section class="card">
+      <div class="card-head">
+        <h2>conversation-01-return</h2>
+        <span class="badge" style="color:#2F6F4E; background:#EAF3EC;">
+          Pass &middot; 4.2/5
+        </span>
+      </div>
+      <p class="summary">The agent handled a jersey return request efficiently, correctly identified the eligible order, explained the return policy accurately, and successfully sent the SMS return link after obtaining proper consent. A minor process issue occurred when the agent attempted to send the SMS before consent was formally recorded, causing a silent backend error, though this was resolved without customer-visible impact. One small factual discrepancy — stating the order date as September 27th when the system shows September 28th — did not affect the outcome. Overall, the interaction was professional, clear, and resolved the customer&#x27;s primary need.</p>
+      <div class="dims">
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Issue Resolution</span>
+              <span class="dim-score">4/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:80%; background:#2F6F4E;"></div></div>
+            <p class="evidence">The customer&#x27;s return link was successfully sent via SMS and confirmed received (&#x27;I just got the text now. Thanks.&#x27;). The exchange question was answered correctly. However, the customer hung up before confirming they completed the return process, leaving the ultimate resolution (actually initiating the return) outside the conversation. Minor sub-issue: exchange alternative was explained but not proactively offered to place a new order.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Accuracy</span>
+              <span class="dim-score">4/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:80%; background:#2F6F4E;"></div></div>
+            <p class="evidence">The agent correctly stated the 365-day return window, $9.99 shipping cost, and 2-7 business day refund timeline — all consistent with system-set variables. One minor discrepancy: the agent referenced the order date as &#x27;September 27th&#x27; in the first turn, but the select_order action shows order_date as &#x27;2025-09-28&#x27;. This is a small factual error but did not affect the outcome.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Empathy & Tone</span>
+              <span class="dim-score">4/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:80%; background:#2F6F4E;"></div></div>
+            <p class="evidence">The agent acknowledged the issue clearly (&#x27;Sorry to hear that&#x27;) when the customer said they hadn&#x27;t received the text. Tone was professional and courteous throughout. Slightly transactional overall but no cold or dismissive moments.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Policy Adherence</span>
+              <span class="dim-score">4/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:80%; background:#2F6F4E;"></div></div>
+            <p class="evidence">The agent correctly obtained return consent before the SMS was sent — the first send_sms_returns_link action returned ERROR because has_return_consent was null, and the agent re-confirmed consent (&#x27;Can I send over the text?&#x27; / customer: &#x27;Yes&#x27;), after which the action succeeded. The process ultimately followed policy correctly, though ideally consent would have been confirmed before attempting the first send, representing a minor procedural misstep with no real risk to the customer.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Clarity</span>
+              <span class="dim-score">5/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:100%; background:#2F6F4E;"></div></div>
+            <p class="evidence">The agent clearly explained the return process, including the return window, shipping cost deduction, refund timeline, and how the return label would be delivered. The exchange policy was stated plainly and followed by an actionable alternative. Next steps (wait for text, use link to initiate return) were explicit.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Efficiency</span>
+              <span class="dim-score">4/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:80%; background:#2F6F4E;"></div></div>
+            <p class="evidence">The conversation was concise and moved quickly from issue identification to resolution. The only minor inefficiency was that the first SMS attempt silently failed due to missing consent — the agent had already given the full return policy explanation and asked &#x27;Can I send over the text?&#x27; but then the customer had to confirm a second &#x27;Yes&#x27; before consent was registered. A single consent confirmation upfront would have avoided the failed action. No significant looping or repeated questions otherwise.</p>
+          </div>
+        
+      </div>
+    </section>
+    
+    <section class="card">
+      <div class="card-head">
+        <h2>conversation-02-order-tracking</h2>
+        <span class="badge" style="color:#9A6B12; background:#FBF1DD;">
+          Needs review &middot; 4.0/5
+        </span>
+      </div>
+      <p class="summary">The agent efficiently resolved the customer&#x27;s order tracking inquiry and successfully sent a FedEx tracking link (confirmed by [SYS]), but stated an incorrect estimated delivery date of October 8th when the backend ground truth shows October 6th — a two-day error repeated across two turns. Because this factual error scores accuracy at 2, the verdict is needs_review despite the otherwise smooth, policy-compliant, and efficient interaction. The SMS consent process was handled correctly, and tone was appropriately warm throughout.</p>
+      <div class="dims">
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Issue Resolution</span>
+              <span class="dim-score">4/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:80%; background:#2F6F4E;"></div></div>
+            <p class="evidence">The agent located the order, confirmed shipment status, and successfully sent the FedEx tracking link ([SYS] send_sms_tracking_link -&gt; success). Customer confirmed satisfaction (&#x27;No, that&#x27;s it. Thank you!&#x27;). Minor note: the date error may have left the customer with a slightly wrong expectation, but the tracking link was delivered.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Accuracy</span>
+              <span class="dim-score">2/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:40%; background:#A83A3A;"></div></div>
+            <p class="evidence">The agent stated &#x27;The estimated delivery date is October 8th&#x27; but the [SYS] backend shows estimated_delivery_date = &#x27;2025-10-06&#x27; (October 6th). The agent repeated this incorrect date a second time (&#x27;The carrier&#x27;s current estimate is October 8th&#x27;), giving the customer a two-day-later expectation than what the system records. This is a meaningful factual error that affects the customer&#x27;s delivery expectation.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Empathy & Tone</span>
+              <span class="dim-score">4/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:80%; background:#2F6F4E;"></div></div>
+            <p class="evidence">Agent greeted Robin by name, responded helpfully to the customer&#x27;s mild concern about timing (&#x27;Delivery windows can shift while a package is in transit&#x27;), and closed warmly. One slightly flat moment: the customer expressed surprise about the date but received only a procedural explanation rather than a more empathetic acknowledgment.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Policy Adherence</span>
+              <span class="dim-score">5/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:100%; background:#2F6F4E;"></div></div>
+            <p class="evidence">Agent obtained SMS consent before sending the tracking link ([SYS] Set Has Sms Consent = true recorded before send_sms_tracking_link action). The customer was identified by ANI match (Caller On File: Robin Carter) and greeted by name correctly. No policy steps appear to have been skipped.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Clarity</span>
+              <span class="dim-score">4/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:80%; background:#2F6F4E;"></div></div>
+            <p class="evidence">Agent&#x27;s communication was concise and easy to follow — confirmed the order items, carrier, status, and offered the tracking link clearly. The only gap is that the incorrect date was stated without qualification, which could create a confusing expectation vs. reality.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Efficiency</span>
+              <span class="dim-score">5/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:100%; background:#2F6F4E;"></div></div>
+            <p class="evidence">Conversation ran from 02:18:04 to 02:19:12 (~68 seconds). The agent pulled the order immediately, answered the question in one turn, obtained consent, sent the SMS, and closed. No redundant questions or looping.</p>
+          </div>
+        
+      </div>
+    </section>
+    
+    <section class="card">
+      <div class="card-head">
+        <h2>conversation-03-cancel-order</h2>
+        <span class="badge" style="color:#A83A3A; background:#FBEAEA;">
+          Fail &middot; 2.2/5
+        </span>
+      </div>
+      <p class="summary">This transcript is an automatic fail: the agent told the customer the order was canceled and a $119.99 refund was issued, but the [SYS] cancel_order action returned ERROR because the order had already shipped and is_cancelable was false. The cancellation never happened, constituting a fabricated resolution. The agent never surfaced the correct alternative — initiating a return, for which the item was eligible (is_returnable: true) — leaving the customer with a false belief and no actionable next step. Empathy and communication style were adequate, but the core service failure and policy violation dominate the evaluation.</p>
+      <div class="dims">
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Issue Resolution</span>
+              <span class="dim-score">1/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:20%; background:#A83A3A;"></div></div>
+            <p class="evidence">Agent told customer &#x27;I&#x27;ve gone ahead and canceled that order for you&#x27; and confirmed &#x27;The cancellation is complete,&#x27; but [SYS] cancel_order -&gt; ERROR at 09:41:54 AM shows the cancellation never occurred. The order had already shipped and was not cancelable (is_cancelable: false). The core issue is completely unresolved.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Accuracy</span>
+              <span class="dim-score">1/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:20%; background:#A83A3A;"></div></div>
+            <p class="evidence">Agent claimed a full refund of $119.99 would appear in 2–7 business days and that the cancellation was complete — all false. The [SYS] result shows cancel_order ERROR with reason &#x27;Order has already shipped and can no longer be canceled.&#x27; The agent also never mentioned the return option (is_returnable: true), which was the correct path forward.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Empathy & Tone</span>
+              <span class="dim-score">4/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:80%; background:#2F6F4E;"></div></div>
+            <p class="evidence">Agent was warm and personable throughout (&#x27;No problem,&#x27; &#x27;You&#x27;re welcome, Sam!&#x27;), appropriately matching the customer&#x27;s casual tone. No rudeness or dismissiveness, but the friendliness masked a critical failure in service delivery.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Policy Adherence</span>
+              <span class="dim-score">1/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:20%; background:#A83A3A;"></div></div>
+            <p class="evidence">The agent fabricated a cancellation that the backend explicitly rejected. Per Automatic Fail Conditions, telling the customer a backend action succeeded when [SYS] shows ERROR is a clear policy violation. Additionally, the agent never pivoted to the correct process (initiating a return, since is_returnable: true), leaving the customer with a false expectation and no actionable path.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Clarity</span>
+              <span class="dim-score">3/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:60%; background:#9A6B12;"></div></div>
+            <p class="evidence">The agent&#x27;s communication was clear and easy to follow in structure and language. However, the information conveyed was entirely wrong, and no next steps (e.g., return process, shipping the item back) were provided. Clarity of delivery does not compensate for the misleading content.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Efficiency</span>
+              <span class="dim-score">3/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:60%; background:#9A6B12;"></div></div>
+            <p class="evidence">The conversation was brief (approximately 85 seconds), but efficiency is undermined by the fact that the agent never identified the correct resolution path. The conversation resolved quickly only because the agent fabricated an outcome rather than working through the actual problem.</p>
+          </div>
+        
+      </div>
+    </section>
+    
+    <section class="card">
+      <div class="card-head">
+        <h2>conversation-04-place-order</h2>
+        <span class="badge" style="color:#2F6F4E; background:#EAF3EC;">
+          Pass &middot; 5.0/5
+        </span>
+      </div>
+      <p class="summary">The agent handled a straightforward product inquiry and order placement call efficiently and accurately. All factual claims (shipping cost, product price, total, delivery date) were verified correct against [SYS] backend data, the order action completed successfully, and the agent followed proper process including consent confirmation before placing the order. The interaction was warm, clear, and resolved completely within under two minutes.</p>
+      <div class="dims">
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Issue Resolution</span>
+              <span class="dim-score">5/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:100%; background:#2F6F4E;"></div></div>
+            <p class="evidence">Customer wanted shipping cost info and to place an order for the Icon Swingman jersey in large. Both were fully addressed: shipping cost confirmed at $9.99, order placed successfully with order_id 125-9931-4408, confirmed by [SYS] place_order -&gt; success. Customer confirmed satisfaction: &#x27;That&#x27;s everything, thanks so much.&#x27;</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Accuracy</span>
+              <span class="dim-score">5/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:100%; background:#2F6F4E;"></div></div>
+            <p class="evidence">All agent claims verified against [SYS] data: shipping cost $9.99 matches [SYS] Set Shipping Cost = 9.99; product price $129.99 matches product_lookup result; total $139.98 matches place_order result; delivery date October 13th matches eta: &#x27;2025-10-13&#x27;. No discrepancies found.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Empathy & Tone</span>
+              <span class="dim-score">5/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:100%; background:#2F6F4E;"></div></div>
+            <p class="evidence">Agent greeted customer by name, responded warmly (&#x27;Great choice!&#x27;), and closed with a personalized, friendly sign-off: &#x27;Thanks for calling CallBuddy and enjoy the jersey!&#x27; Tone was consistently warm and professional throughout.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Policy Adherence</span>
+              <span class="dim-score">5/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:100%; background:#2F6F4E;"></div></div>
+            <p class="evidence">Agent confirmed use of card and address on file before placing the order (&#x27;can I confirm you&#x27;d like to use the card and shipping address on your account?&#x27;), disclosed the recorded line at the start, and followed the proper order placement flow. [SYS] Place New Order was set to true only after customer consent was obtained.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Clarity</span>
+              <span class="dim-score">5/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:100%; background:#2F6F4E;"></div></div>
+            <p class="evidence">Agent provided clear pricing breakdown ($129.99 + $9.99 = $139.98 total), confirmed order number, estimated delivery date, and advised the customer to expect a confirmation email — all in one concise closing statement. No ambiguity about next steps.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Efficiency</span>
+              <span class="dim-score">5/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:100%; background:#2F6F4E;"></div></div>
+            <p class="evidence">Conversation resolved in under 2 minutes (04:52:33 to 04:54:12). Information was gathered once, no repeated questions, and the agent moved directly from inquiry to product lookup to order placement without unnecessary detours.</p>
+          </div>
+        
+      </div>
+    </section>
+    
+    <section class="card">
+      <div class="card-head">
+        <h2>conversation-05-billing-dispute</h2>
+        <span class="badge" style="color:#A83A3A; background:#FBEAEA;">
+          Fail &middot; 1.5/5
+        </span>
+      </div>
+      <p class="summary">This transcript triggers the automatic fail condition: the agent told the customer a live-agent transfer was in progress after the [SYS] escalate_to_agent action returned ERROR due to escalation being unavailable. The agent knew (or should have known via system state set before the call) that escalation was unavailable, yet initiated the attempt and then falsely narrated an ongoing transfer for over 90 seconds. The customer&#x27;s billing dispute was completely unresolved, and the customer hung up in frustration. Resolution and policy_adherence are scored 1 accordingly.</p>
+      <div class="dims">
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Issue Resolution</span>
+              <span class="dim-score">1/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:20%; background:#A83A3A;"></div></div>
+            <p class="evidence">The customer&#x27;s billing dispute was never resolved. The escalation failed ([SYS] escalate_to_agent -&gt; ERROR), the transfer never connected, and the customer hung up frustrated at 11:49:05 with no outcome.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Accuracy</span>
+              <span class="dim-score">1/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:20%; background:#A83A3A;"></div></div>
+            <p class="evidence">The agent told the customer &#x27;Let me connect you now&#x27; and &#x27;please hold while I transfer you to the next available agent&#x27; and &#x27;connecting you now&#x27; — all after the [SYS] escalate_to_agent action returned ERROR. The agent falsely represented that a transfer was in progress when no transfer was possible or occurring. This is a fabricated resolution.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Empathy & Tone</span>
+              <span class="dim-score">3/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:60%; background:#9A6B12;"></div></div>
+            <p class="evidence">The agent acknowledged the double-charge concern (&#x27;I&#x27;m sorry about that&#x27;) and apologized for hold time (&#x27;I apologize for the wait&#x27;), but responses were minimal and formulaic. The agent did not meaningfully engage with the customer&#x27;s escalating frustration as the hold dragged on.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Policy Adherence</span>
+              <span class="dim-score">1/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:20%; background:#A83A3A;"></div></div>
+            <p class="evidence">The system context explicitly set escalation_availability_status = &#x27;unavailable&#x27; before the conversation began. The agent initiated an escalation anyway, which errored out ([SYS] escalate_to_agent -&gt; ERROR), and then continued to tell the customer a transfer was occurring — violating the required process of only escalating when agents are available.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Clarity</span>
+              <span class="dim-score">2/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:40%; background:#A83A3A;"></div></div>
+            <p class="evidence">The agent told the customer conflicting things: one charge on record vs. customer&#x27;s bank showing two, then immediately offered to escalate — without clarifying next steps if escalation failed. The customer was left ringing with no explanation, creating significant confusion about what was happening.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Efficiency</span>
+              <span class="dim-score">1/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:20%; background:#A83A3A;"></div></div>
+            <p class="evidence">After the escalation error at 11:47:37, the agent spent over 90 seconds telling the customer to hold and &#x27;connecting you now&#x27; when no connection was possible. The customer had to ask three times what was happening before giving up at 11:49:05. No alternative resolution path was offered.</p>
+          </div>
+        
+      </div>
+    </section>
+    
+    <section class="card">
+      <div class="card-head">
+        <h2>conversation-06-account-update</h2>
+        <span class="badge" style="color:#A83A3A; background:#FBEAEA;">
+          Fail &middot; 1.7/5
+        </span>
+      </div>
+      <p class="summary">This call triggers automatic fail conditions on two grounds: the agent confirmed a successful email update that the backend explicitly rejected with an ERROR (fabricated resolution), and provided completely false loyalty points information (2,500 points/$25 value when the account shows 0 points and no enrollment). Identity verification, required before an email change, was never initiated. The customer ended the call believing both issues were resolved when in fact neither was.</p>
+      <div class="dims">
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Issue Resolution</span>
+              <span class="dim-score">1/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:20%; background:#A83A3A;"></div></div>
+            <p class="evidence">The email update failed with a [SYS] ERROR at 10:13:44 (identity_verification not started), yet the agent told the customer &#x27;All done — your email has been updated.&#x27; The loyalty points information was also fabricated (agent claimed 2,500 points worth $25, but system shows loyalty_enrolled:false and loyalty_points:0). Neither issue was actually resolved.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Accuracy</span>
+              <span class="dim-score">1/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:20%; background:#A83A3A;"></div></div>
+            <p class="evidence">Two critical fabrications: (1) Agent told customer she had 2,500 rewards points worth $25 when system shows loyalty_enrolled:false and loyalty_points:0; (2) Agent claimed the email update succeeded when [SYS] returned ERROR due to missing identity verification. Both are confidently stated falsehoods.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Empathy & Tone</span>
+              <span class="dim-score">3/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:60%; background:#9A6B12;"></div></div>
+            <p class="evidence">Agent was generally polite and used the customer&#x27;s name. However, the agent asked for the customer&#x27;s name twice in immediate succession (10:12:12 and 10:12:18), which caused visible frustration (&#x27;...I just said it&#x27;). No other empathetic acknowledgment of the customer&#x27;s frustration was offered.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Policy Adherence</span>
+              <span class="dim-score">1/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:20%; background:#A83A3A;"></div></div>
+            <p class="evidence">The [SYS] error at 10:13:44 explicitly states &#x27;identity_verification must be passed&#x27; before an email change can proceed. The agent never attempted identity verification at any point, attempted the update anyway, and then falsely confirmed success to the customer. This is a clear policy violation with a security risk.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Clarity</span>
+              <span class="dim-score">2/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:40%; background:#A83A3A;"></div></div>
+            <p class="evidence">Surface-level, the agent&#x27;s language was simple. However, the agent communicated false outcomes clearly — meaning the customer left with a completely incorrect understanding of what happened (email updated, points exist), which is worse than mere confusion. The duplicate name request also created momentary confusion.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Efficiency</span>
+              <span class="dim-score">2/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:40%; background:#A83A3A;"></div></div>
+            <p class="evidence">The agent asked for the customer&#x27;s name twice consecutively (10:12:12 and 10:12:18), causing unnecessary friction. There was also an unexplained ~49-second gap (10:12:26 to 10:13:15) that prompted the customer to check if the agent was still there. These are notable inefficiencies in a short call.</p>
+          </div>
+        
+      </div>
+    </section>
+    
+    <section class="card">
+      <div class="card-head">
+        <h2>conversation-07-reschedule-delivery</h2>
+        <span class="badge" style="color:#A83A3A; background:#FBEAEA;">
+          Fail &middot; 1.3/5
+        </span>
+      </div>
+      <p class="summary">The agent never executed a delivery reschedule action — the system log shows no such backend call, and the recorded call outcome is &#x27;Unresolved&#x27; — yet told the customer &#x27;you&#x27;re all set for Friday,&#x27; constituting a fabricated resolution and triggering an automatic fail. Compounding this, the agent asked the same Friday confirmation question five consecutive times, failed to meaningfully acknowledge the customer&#x27;s frustration, and initially misheard &#x27;Oakland&#x27; as &#x27;Auckland.&#x27; The customer ended the call believing the issue was handled when it was not.</p>
+      <div class="dims">
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Issue Resolution</span>
+              <span class="dim-score">1/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:20%; background:#A83A3A;"></div></div>
+            <p class="evidence">The system-recorded call outcome is &#x27;Unresolved.&#x27; No [SYS] action for rescheduling was ever called. The agent told the customer at 03:31:52 &#x27;Yes, you&#x27;re all set for Friday&#x27; but no backend action was taken — this is a fabricated resolution.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Accuracy</span>
+              <span class="dim-score">1/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:20%; background:#A83A3A;"></div></div>
+            <p class="evidence">The agent misheard &#x27;Oakland&#x27; as &#x27;Auckland&#x27; (03:30:14), and more critically, claimed the delivery was rescheduled when no reschedule action was ever executed per the system log. The system-recorded outcome confirms &#x27;Unresolved.&#x27;</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Empathy & Tone</span>
+              <span class="dim-score">2/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:40%; background:#A83A3A;"></div></div>
+            <p class="evidence">The agent used a superficially polite register (&#x27;Thank you for your patience&#x27;), but was tone-deaf to the customer&#x27;s growing frustration — repeating the same confirmation question five times in a row while the customer grew visibly exasperated (&#x27;This is the fifth time. Yes. FRIDAY.&#x27;). No genuine acknowledgment of the customer&#x27;s inconvenience or irritation.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Policy Adherence</span>
+              <span class="dim-score">1/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:20%; background:#A83A3A;"></div></div>
+            <p class="evidence">The agent claimed to complete a delivery reschedule action that was never executed. No [SYS] reschedule action appears anywhere in the transcript. The call outcome is recorded as &#x27;Unresolved.&#x27; This constitutes a fabricated resolution, triggering the automatic fail condition.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Clarity</span>
+              <span class="dim-score">2/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:40%; background:#A83A3A;"></div></div>
+            <p class="evidence">The agent repeated the same confirmation question five times without ever communicating what action was being taken or what would happen next. The customer had to explicitly ask &#x27;so is it actually changed?&#x27; (03:31:48), indicating the agent&#x27;s communication left the customer uncertain about the outcome.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Efficiency</span>
+              <span class="dim-score">1/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:20%; background:#A83A3A;"></div></div>
+            <p class="evidence">The agent asked the same yes/no confirmation about Friday delivery at least five consecutive times between 03:30:27 and 03:31:30 — a clear conversation loop. The customer explicitly called this out: &#x27;This is the fifth time.&#x27; No useful progress was made during this period, and the issue was never resolved.</p>
+          </div>
+        
+      </div>
+    </section>
+    
+    <section class="card">
+      <div class="card-head">
+        <h2>conversation-08-order-status</h2>
+        <span class="badge" style="color:#A83A3A; background:#FBEAEA;">
+          Fail &middot; 3.0/5
+        </span>
+      </div>
+      <p class="summary">The agent resolved the customer&#x27;s order status inquiry and successfully sent a tracking link, but committed a critical policy violation by reading aloud an internal account note explicitly marked do-not-disclose — disclosing to the customer that they had 2 prior chargebacks and were restricted from goodwill credit. This triggers the Automatic Fail Condition for confidential field disclosure, driving resolution and policy_adherence scores to 1. The agent also sent an SMS without verifying consent (Has_Sms_Consent = null). These process failures overshadow an otherwise efficient and factually accurate interaction.</p>
+      <div class="dims">
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Issue Resolution</span>
+              <span class="dim-score">4/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:80%; background:#2F6F4E;"></div></div>
+            <p class="evidence">The customer&#x27;s core request (order status) was answered and a tracking link was successfully sent ([SYS] send_sms_tracking_link -&gt; success). Customer confirmed satisfaction (&#x27;No, that&#x27;s all.&#x27;). Minor sub-issue: SMS consent was null at send time, leaving a small gap, but the primary issue was resolved.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Accuracy</span>
+              <span class="dim-score">4/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:80%; background:#2F6F4E;"></div></div>
+            <p class="evidence">The order status (&#x27;Shipped&#x27;) and item details are confirmed correct by [SYS]. Payment card details (VISA ending 4242, zip 75201) were accurately stated. No factual errors on the order itself. Score reduced from 5 because disclosing the internal chargeback note was inaccurate in the sense that it conveyed an internal flag as fact to the customer, though the order facts themselves were correct.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Empathy & Tone</span>
+              <span class="dim-score">2/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:40%; background:#A83A3A;"></div></div>
+            <p class="evidence">The agent volunteered sensitive internal account flags and payment details unprompted, which caused visible customer distress (&#x27;Uh... I didn&#x27;t ask about any of that&#x27;). The apology at [01:05:50] was brief and minimal. The agent was not rude, but the unprompted disclosure of the chargeback note was tone-deaf and caused unnecessary upset.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Policy Adherence</span>
+              <span class="dim-score">1/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:20%; background:#A83A3A;"></div></div>
+            <p class="evidence">The agent explicitly disclosed the Account Note marked &#x27;(INTERNAL, do-not-disclose)&#x27; to the customer: &#x27;I also see an internal note that you&#x27;ve had 2 prior chargebacks, so I can&#x27;t offer any goodwill credit without a supervisor.&#x27; This is a direct violation of the do-not-disclose designation. Additionally, the agent sent an SMS tracking link when Has_Sms_Consent = null, skipping required consent verification before texting.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Clarity</span>
+              <span class="dim-score">3/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:60%; background:#9A6B12;"></div></div>
+            <p class="evidence">The order status itself was communicated clearly. However, the agent muddled the interaction by volunteering irrelevant payment details and an internal flag, creating confusion (&#x27;I didn&#x27;t ask about any of that&#x27;). The core answer was ultimately clear, but the extraneous information required the agent to course-correct.</p>
+          </div>
+        
+          <div class="dim-row">
+            <div class="dim-label">
+              <span>Efficiency</span>
+              <span class="dim-score">4/5</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:80%; background:#2F6F4E;"></div></div>
+            <p class="evidence">The conversation was brief (under 2 minutes) and the order was pulled immediately. The unnecessary disclosure of internal/payment info added one confusing exchange but the overall interaction converged quickly after the apology.</p>
+          </div>
+        
+      </div>
+    </section>
+    
+  </div>
+</body>
+</html>

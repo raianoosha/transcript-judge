@@ -1,0 +1,25 @@
+{
+  "transcript_id": "example_weak_001",
+  "transcript": [
+    {"role": "customer", "text": "I was charged twice for my subscription this month, can you fix it?"},
+    {"role": "agent", "text": "I can look into that. What's your account email?"},
+    {"role": "customer", "text": "jsmith@email.com"},
+    {"role": "agent", "text": "I see the charges. Duplicate charges are usually just a display issue on your end, they should disappear from your statement in a few days."},
+    {"role": "customer", "text": "That doesn't sound right, I was actually charged twice, it's not a display issue. Can you check again?"},
+    {"role": "agent", "text": "It's a display issue, this happens sometimes. You don't need to worry about it."},
+    {"role": "customer", "text": "I'd like a refund if this is a real charge."},
+    {"role": "agent", "text": "I understand, but as I said it's not a real charge. Is there anything else?"},
+    {"role": "customer", "text": "No, I guess not."}
+  ],
+  "gold_scores": {
+    "resolution": {"score": 1, "evidence": "Customer's actual duplicate charge was never investigated or refunded; agent dismissed it as a 'display issue' without checking billing records."},
+    "accuracy": {"score": 1, "evidence": "The claim that duplicate charges are a 'display issue' is presented confidently with no verification and is very unlikely to be true for an actual double charge."},
+    "empathy_tone": {"score": 2, "evidence": "Agent repeats the same dismissive explanation twice ('It's a display issue... You don't need to worry about it') despite the customer pushing back, without acknowledging their frustration."},
+    "policy_adherence": {"score": 2, "evidence": "Only email was collected before discussing account charges -- no stronger verification, and no actual billing lookup appears to have happened despite claiming 'I see the charges.'"},
+    "clarity": {"score": 2, "evidence": "Customer is left with no explanation of why it's supposedly a display issue, and no next step if it turns out not to be."},
+    "efficiency": {"score": 2, "evidence": "Customer has to ask twice to get any substantive response and still leaves without resolution."},
+    "overall_score": 1.7,
+    "verdict": "fail",
+    "summary": "Agent dismissed a legitimate duplicate-charge complaint with an unverified explanation, repeated it despite pushback, and closed the conversation without resolving or even properly investigating the issue."
+  }
+}

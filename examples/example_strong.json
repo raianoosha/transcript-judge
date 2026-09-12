@@ -1,0 +1,23 @@
+{
+  "transcript_id": "example_strong_001",
+  "transcript": [
+    {"role": "customer", "text": "Hi, I was charged twice for my subscription this month and I'm honestly pretty frustrated, this is the second time this has happened."},
+    {"role": "agent", "text": "I'm sorry that happened again, especially after last time -- that's frustrating and I want to get this fixed properly. Can you confirm the last 4 digits of the card and the date(s) you see the charges?"},
+    {"role": "customer", "text": "Card ending 4482, charges on the 3rd and the 5th."},
+    {"role": "agent", "text": "Thanks. I can see both charges -- the one on the 5th was a duplicate caused by a billing retry error on our end, not something you did. I've refunded that charge; it should post back to your card within 3-5 business days. I've also flagged your account so our billing team checks it manually next cycle to make sure it doesn't happen a third time."},
+    {"role": "customer", "text": "Okay, thank you. Will I get a confirmation email?"},
+    {"role": "agent", "text": "Yes, you'll get a refund confirmation within the next few minutes, and a separate note once billing confirms the account flag is in place. Is there anything else I can help with?"},
+    {"role": "customer", "text": "No that's all, thanks."}
+  ],
+  "gold_scores": {
+    "resolution": {"score": 5, "evidence": "Duplicate charge identified, refunded, and a preventive flag added -- customer confirms no further needs."},
+    "accuracy": {"score": 5, "evidence": "Explanation of the billing retry error is specific and consistent with the refund action taken; no contradictions."},
+    "empathy_tone": {"score": 5, "evidence": "Agent explicitly acknowledges this is a repeat issue and the frustration it causes before moving to verification."},
+    "policy_adherence": {"score": 5, "evidence": "Verified identity (last 4 digits + dates) before discussing account/billing details."},
+    "clarity": {"score": 5, "evidence": "Refund timeline and next steps (two separate confirmation emails) are stated explicitly."},
+    "efficiency": {"score": 4, "evidence": "Resolved in a small number of turns; one follow-up question from customer about confirmation email, which is reasonable and not redundant."},
+    "overall_score": 4.8,
+    "verdict": "pass",
+    "summary": "Agent verified identity, correctly diagnosed a recurring billing error, resolved it with a refund and a preventive account flag, and communicated next steps clearly and empathetically."
+  }
+}

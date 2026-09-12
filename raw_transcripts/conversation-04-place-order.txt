@@ -1,0 +1,119 @@
+================================================================================
+                     CALLBUDDY  —  AI VOICE AGENT TRANSCRIPT
+                              QA REVIEW COPY
+================================================================================
+!! ALL DATA BELOW IS SYNTHETIC / FICTIONAL — generated for QA testing only.  !!
+!! No real customer, order, or payment data is used.                         !!
+================================================================================
+
+TRANSCRIPT ID   : QA-004
+SCENARIO        : Product Inquiry + Place New Order
+CALL DATE       : 2025-10-06
+DURATION        : ~1m 48s  (04:52:33 PM – 04:54:21 PM)
+CALL OUTCOME    : Resolved
+CALL REASON     : Place New Order
+
+--------------------------------------------------------------------------------
+ CALL METADATA
+--------------------------------------------------------------------------------
+Caller Phone Number        : +16173390185
+Dialed Phone               : +18774382200
+External Id                : e0473b6a-1c92-4f57-8d20-9a4415c6db34
+Escalation Availability     : available
+Company Brand              : CallBuddy
+Caller On File             : Casey Nguyen
+Phone Number On File       : 16173390185
+Email On File              : casey.nguyen88@gmail.com
+Search Order Method        : by_ani  (key: +16173390185 -> 16173390185)
+
+--------------------------------------------------------------------------------
+ SYSTEM INITIALIZATION  (Actions & Variables)
+--------------------------------------------------------------------------------
+[SYS] Set Agent Greeting        = "Thanks for calling CallBuddy. You're on a recorded line. Hey, how can I help you today?"
+[SYS] Set Shipping Cost         = 9.99
+[SYS] Set Return Policy Max Days = 365
+[SYS] Set Place New Order       = false
+
+[SYS] Action initialize_conversation -> success
+        Orders = []          (no prior orders on file)
+        Agent Language   = "English"
+        Agent Country    = "US"
+        Agent Greeting   = "Thank you for calling CallBuddy. You're on a recorded
+                            line. Hey Casey, how can I help you?"
+        Company Brand    = "CallBuddy"
+        Internal Config  = {"queue":"CallBuddy","site_id":"847213",
+                            "country_code":"US","currency":"USD",
+                            "timezone":"America/New_York"}
+
+--------------------------------------------------------------------------------
+ CONVERSATION TIMELINE
+--------------------------------------------------------------------------------
+
+[04:52:33 PM]
+  AI AGENT > Thank you for calling CallBuddy. You're on a recorded line.
+             Hey Casey, how can I help you?
+
+[04:52:41 PM]
+  CALLER   > Hi, I'm looking to buy a basketball jersey but I want to know the
+             shipping cost before I order.
+
+[04:52:44 PM]
+  AI AGENT > Great choice! Standard shipping is a flat $9.99, and orders
+             typically arrive within 5 to 7 business days. Would you like me to
+             help you place the order now?
+
+[04:52:58 PM]
+  CALLER   > Yes. The Icon Swingman home jersey, size large.
+
+[04:53:00 PM]
+  AI AGENT > One moment while I check availability and pricing.
+
+  [SYS] Action product_lookup -> success
+          Product = {
+            product_id  : 2907413,
+            name        : "Men's Icon Swingman Basketball Jersey",
+            size        : "large",
+            in_stock    : true,
+            unit_price  : 129.99,
+            currency    : "USD"
+          }
+
+[04:53:12 PM]
+  AI AGENT > The Men's Icon Swingman Basketball Jersey in large is in stock at
+             $129.99, plus $9.99 shipping, for a total of $139.98. Should I
+             place the order to the address on file?
+
+[04:53:30 PM]
+  CALLER   > Yes please.
+
+[04:53:31 PM]
+  AI AGENT > Before I place it, can I confirm you'd like to use the card and
+             shipping address on your account?
+
+[04:53:39 PM]
+  CALLER   > Yes, that's fine.
+
+  [SYS] Set Place New Order = true
+  [SYS] Action place_order -> success
+          New Order = {
+            order_id    : "125-9931-4408",
+            total_price : "139.98",
+            eta         : "2025-10-13"
+          }
+
+[04:53:52 PM]
+  AI AGENT > All set! Your order number is 125-9931-4408, total $139.98, with an
+             estimated delivery of October 13th. You'll get a confirmation email
+             at the address on file. Anything else I can help with?
+
+[04:54:10 PM]
+  CALLER   > That's everything, thanks so much.
+
+[04:54:12 PM]
+  AI AGENT > You're welcome, Casey. Thanks for calling CallBuddy and enjoy the
+             jersey!
+
+  [SYS] Action conversation_data_upload -> success
+          Call reason = "Place New Order"
+
+================================================================================
