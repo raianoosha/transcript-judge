@@ -7,18 +7,17 @@ using the Anthropic API as an LLM judge.
 
 Usage:
     export ANTHROPIC_API_KEY=sk-ant-...
-    python batch_score.py --input-dir ./transcripts --output ./results/scores.jsonl
+    python batch_score.py --input-dir ./raw_transcripts --output ./results/scores.jsonl
 
 Input format:
-    Each file in --input-dir should be a .json file shaped like:
-    {
-      "transcript_id": "some_id",
-      "transcript": [
-        {"role": "customer", "text": "..."},
-        {"role": "agent", "text": "..."},
-        ...
-      ]
-    }
+    Each file in --input-dir should be a raw .txt call transcript in the format
+    parse_raw_transcripts.py understands (header + call metadata + system init +
+    timestamped timeline with [SYS] action/error notes). Transcripts are parsed
+    on the fly -- there's no separate JSON intermediate to keep in sync.
+
+    Legacy .json transcripts shaped like
+    {"transcript_id": "...", "transcript": [{"role": "customer", "text": "..."}, ...]}
+    are still supported for backward compatibility.
 
 Output:
     A .jsonl file (one JSON object per line) with the judge's scores for each transcript,
@@ -38,6 +37,8 @@ try:
 except ImportError:
     print("Missing dependency. Install with: pip install anthropic --break-system-packages", file=sys.stderr)
     sys.exit(1)
+
+from parse_raw_transcripts import parse_transcript_file
 
 MODEL = "claude-sonnet-4-6"
 MAX_RETRIES = 3
@@ -165,7 +166,7 @@ def score_transcript(client: anthropic.Anthropic, system_prompt: str, transcript
 
 def main():
     parser = argparse.ArgumentParser(description="Batch-score transcripts with the transcript-judge rubric.")
-    parser.add_argument("--input-dir", required=True, help="Directory of .json transcript files.")
+    parser.add_argument("--input-dir", required=True, help="Directory of raw .txt (or legacy .json) transcript files.")
     parser.add_argument("--output", default="results/scores.jsonl", help="Path to write JSONL results.")
     parser.add_argument("--csv", default=None, help="Optional path to also write a summary CSV.")
     parser.add_argument("--html", default=None, help="Optional path to also write an HTML report (e.g. results/report.html).")
@@ -180,18 +181,23 @@ def main():
     system_prompt = load_skill_instructions()
 
     input_dir = Path(args.input_dir)
-    files = sorted(input_dir.glob("*.json"))
-    if not files:
-        print(f"No .json files found in {input_dir}", file=sys.stderr)
+    txt_files = sorted(input_dir.glob("*.txt"))
+    json_files = sorted(input_dir.glob("*.json"))
+    if not txt_files and not json_files:
+        print(f"No .txt or .json transcript files found in {input_dir}", file=sys.stderr)
         sys.exit(1)
 
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
+    files = txt_files + json_files
     results = []
     with output_path.open("w", encoding="utf-8") as out_f:
         for i, file_path in enumerate(files, start=1):
-            data = json.loads(file_path.read_text(encoding="utf-8"))
+            if file_path.suffix == ".txt":
+                data = parse_transcript_file(file_path)
+            else:
+                data = json.loads(file_path.read_text(encoding="utf-8"))
             transcript_id = data.get("transcript_id", file_path.stem)
 
             print(f"[{i}/{len(files)}] Scoring {transcript_id} ...")

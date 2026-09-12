@@ -9,17 +9,21 @@ An LLM-as-judge project for scoring customer support conversation transcripts ag
 
 ```
 transcript-judge/
-├── SKILL.md                    # Rubric + judging instructions (source of truth)
-├── rubric.json                 # Same rubric in structured form, for programmatic use
+├── SKILL.md                     # Rubric + judging instructions (source of truth)
+├── rubric.json                  # Same rubric in structured form, for programmatic use
 ├── examples/                    # Calibration examples (gold-scored transcripts)
 │   ├── example_strong.json
 │   └── example_weak.json
+├── raw_transcripts/             # Source call transcripts (.txt), the only input the scorer needs
 ├── scripts/
-│   ├── batch_score.py          # Batch scoring script (calls Anthropic API)
-│   └── generate_html_report.py # Turns scores.jsonl into a readable HTML report
+│   ├── batch_score.py           # Batch scoring script (calls Anthropic API)
+│   ├── parse_raw_transcripts.py # Parses raw .txt transcripts into the judge's prompt format
+│   └── generate_html_report.py  # Turns scores.jsonl into a readable HTML report
 ├── results/                     # Output directory for batch runs (created automatically)
 └── README.md
 ```
+
+`raw_transcripts/*.txt` is parsed on the fly by `batch_score.py` (via `parse_raw_transcripts.py`) — there's no separate JSON copy to keep in sync. If you add or edit a raw transcript, the next run picks it up automatically.
 
 ## Option 1: Use as a Claude Code skill
 
@@ -46,20 +50,12 @@ Claude Code will load the skill and return the structured JSON scores.
    ```bash
    export ANTHROPIC_API_KEY=sk-ant-...
    ```
-3. Put your transcripts in a folder as individual `.json` files, shaped like:
-   ```json
-   {
-     "transcript_id": "ticket_1234",
-     "transcript": [
-       {"role": "customer", "text": "..."},
-       {"role": "agent", "text": "..."}
-     ]
-   }
-   ```
-   (See `examples/example_strong.json` for a full example.)
+3. Put your raw call transcripts in a folder as individual `.txt` files, following the format `parse_raw_transcripts.py` expects: a header block, call metadata, system initialization, and a timestamped conversation timeline with `[SYS]` action/error notes (see `raw_transcripts/` for real examples). This is what preserves the backend ground truth (order data, action success/failure, internal-only fields) that the judge cross-checks agent claims against.
+
+   Legacy flat-dialogue `.json` transcripts (`{"transcript_id": ..., "transcript": [{"role": ..., "text": ...}, ...]}`, see `examples/example_strong.json`) are still supported, but without system context the judge can only score what's said, not verify it.
 4. Run:
    ```bash
-   python scripts/batch_score.py --input-dir ./transcripts --output ./results/scores.jsonl
+   python scripts/batch_score.py --input-dir ./raw_transcripts --output ./results/scores.jsonl
    ```
    This writes:
    - `results/scores.jsonl` — one full JSON judgment per line
@@ -67,7 +63,7 @@ Claude Code will load the skill and return the structured JSON scores.
 
    Add `--html ./results/report.html` to also generate a readable HTML report (score bars, verdict badges, evidence, per transcript):
    ```bash
-   python scripts/batch_score.py --input-dir ./transcripts --output ./results/scores.jsonl --html ./results/report.html
+   python scripts/batch_score.py --input-dir ./raw_transcripts --output ./results/scores.jsonl --html ./results/report.html
    ```
 
 The script reads the rubric directly out of `SKILL.md`, so the skill and the batch script are always scoring against the exact same criteria — edit `SKILL.md` once and both stay in sync.
