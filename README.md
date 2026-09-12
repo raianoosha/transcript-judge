@@ -15,6 +15,8 @@ transcript-judge/
 │   ├── example_strong.json
 │   └── example_weak.json
 ├── raw_transcripts/             # Source call transcripts (.txt), the only input the scorer needs
+│   ├── README.md                # Format guide: header + call metadata + system init + timeline
+│   └── conversation-*.txt       # One raw call transcript per file
 ├── scripts/
 │   ├── batch_score.py           # Batch scoring script (calls Anthropic API)
 │   ├── parse_raw_transcripts.py # Parses raw .txt transcripts into the judge's prompt format
